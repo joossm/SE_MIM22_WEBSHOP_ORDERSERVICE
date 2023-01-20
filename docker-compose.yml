@@ -8,7 +8,7 @@ services:
     container_name: orderservice
     working_dir: /SE_MIM22_WEBSHOP_ORDERSERVICE
     ports:
-      - "8443:8443"
+      - "8460:8460"
 
 networks:
   bookstore:
