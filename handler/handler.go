@@ -46,7 +46,7 @@ func GetOrdersByUserID(responseWriter http.ResponseWriter, request *http.Request
 	case "GET":
 		db := openDB()
 		defer closeDB(db)
-		result, err := db.Query("SELECT produktId,userId, amount FROM orders WHERE userId = ?", request.URL.Query().Get("id"))
+		result, err := db.Query("SELECT produktId, userId, amount FROM orders WHERE userId = ?", request.URL.Query().Get("id"))
 		errorHandler(err)
 		var orders []model.Order
 		for result.Next() {
