@@ -1,13 +1,14 @@
 package handler
 
 import (
+	"SE_MIM22_WEBSHOP_ORDERSERVICE/model"
 	"database/sql"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"net/http"
 
-	"SE_MIM22_WEBSHOP_MONO/model"
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" // mysql driver
 )
 
 const post = "POST"
@@ -16,25 +17,31 @@ func PlaceOrder(responseWriter http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case post:
 		if request.Body != nil {
-			body, _ := ioutil.ReadAll(request.Body)
+			body, _ := io.ReadAll(request.Body)
 			order := model.Order{}
 			jsonErr := json.Unmarshal(body, &order)
 			if jsonErr != nil {
-				responseWriter.Write([]byte("{ERROR}"))
+				_, responserErr := responseWriter.Write([]byte("{ERROR}"))
+				errorHandler(responserErr)
 				return
 			}
 			db := openDB()
 			defer closeDB(db)
-			db.Query("INSERT INTO orders (produktId, userId, Amount) VALUES (?, ?, ?)",
+			_, err := db.Query("INSERT INTO orders (produktId, userId, Amount) VALUES (?, ?, ?)",
 				order.ProduktId, order.UserId, order.Amount)
-			responseWriter.Write([]byte("{true}"))
+			errorHandler(err)
+			_, responserErr := responseWriter.Write([]byte("{true}"))
+			errorHandler(responserErr)
+
 			return
 		}
 	default:
-		responseWriter.Write([]byte("THIS IS A POST REQUEST"))
+		_, responserErr := responseWriter.Write([]byte("THIS IS A POST REQUEST"))
+		errorHandler(responserErr)
+		return
 	}
 }
-func GetOrdersByUserId(responseWriter http.ResponseWriter, request *http.Request) {
+func GetOrdersByUserID(responseWriter http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case "GET":
 		db := openDB()
@@ -48,11 +55,15 @@ func GetOrdersByUserId(responseWriter http.ResponseWriter, request *http.Request
 			errorHandler(err)
 			orders = append(orders, order)
 		}
-		json, err := json.Marshal(orders)
+		jsonOrders, err := json.Marshal(orders)
 		errorHandler(err)
-		responseWriter.Write(json)
+		_, responserErr := responseWriter.Write(jsonOrders)
+		errorHandler(responserErr)
+		return
 	default:
-		responseWriter.Write([]byte("THIS IS A GET REQUEST"))
+		_, responserErr := responseWriter.Write([]byte("THIS IS A GET REQUEST"))
+		errorHandler(responserErr)
+		return
 	}
 }
 
@@ -62,7 +73,11 @@ func closeDB(db *sql.DB) {
 }
 
 func openDB() *sql.DB {
-	db, err := sql.Open("mysql", "root:admin@tcp(127.0.0.1:3306)/books")
+	fmt.Println("Opening DB")
+	db, err := sql.Open("mysql", "root:root@tcp(mysql:3306)/books")
+	fmt.Println(db.Ping())
+	fmt.Println(db.Stats())
+	db.SetMaxIdleConns(0)
 	errorHandler(err)
 	return db
 }

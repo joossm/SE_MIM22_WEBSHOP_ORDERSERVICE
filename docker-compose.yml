@@ -1,0 +1,15 @@
+#  --------------------------------------------------------------------------------
+version: '3.8'
+services:
+  orderservice:
+    networks:
+      - bookstore
+    build: ./
+    container_name: orderservice
+    working_dir: /SE_MIM22_WEBSHOP_ORDERSERVICE
+    ports:
+      - "8443:8443"
+
+networks:
+  bookstore:
+    name: "bookstore"
