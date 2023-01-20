@@ -14,7 +14,7 @@ func main() { // Server
 	log.Printf("\n\n\tORDERSERVICE\n\nAbout to listen on Port: 8443." +
 		"\n\nSUPPORTED REQUESTS:" +
 		"\nGET:" +
-		"\nGet Books By ID: http://127.0.0.1:8443/getOrdersByUserId?id=1 requiers a url parameter id" +
+		"\nGet Order By ID: http://127.0.0.1:8443/getOrdersByUserId?id=1 requiers a url parameter id" +
 		"\nPOST:" +
 		"\nPlace Order: http://127.0.0.1:8443/placeOrder requiers a Body with following json:\n{\n    \"produktId\": \"1\",\n    \"userId\": \"1\",\n    \"amount\": \"1\"\n}")
 	server := &http.Server{
