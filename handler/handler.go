@@ -11,11 +11,9 @@ import (
 	_ "github.com/go-sql-driver/mysql" // mysql driver
 )
 
-const post = "POST"
-
 func PlaceOrder(responseWriter http.ResponseWriter, request *http.Request) {
 	switch request.Method {
-	case post:
+	case "POST":
 		if request.Body != nil {
 			body, _ := io.ReadAll(request.Body)
 			order := model.Order{}
