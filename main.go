@@ -30,5 +30,4 @@ func printStartUP() {
 		"\nGet Order By ID: http://127.0.0.1:8460/getOrdersByUserId?id=1 requiers a url parameter id" +
 		"\nPOST:" +
 		"\nPlace Order: http://127.0.0.1:8460/placeOrder requiers a Body with following json:\n{\n    \"produktId\": \"1\",\n    \"userId\": \"1\",\n    \"amount\": \"1\"\n}")
-
 }
