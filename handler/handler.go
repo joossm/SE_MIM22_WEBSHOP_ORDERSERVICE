@@ -19,48 +19,79 @@ func PlaceOrder(responseWriter http.ResponseWriter, request *http.Request) {
 			order := model.Order{}
 			jsonErr := json.Unmarshal(body, &order)
 			if jsonErr != nil {
-				_, responserErr := responseWriter.Write([]byte("{ERROR}"))
-				errorHandler(responserErr)
+				js, err := json.Marshal("Error")
+				errorHandler(err)
+				_, responseErr := responseWriter.Write(js)
+				errorHandler(responseErr)
 				return
 			}
 			db := openDB()
 			defer closeDB(db)
-			_, err := db.Query("INSERT INTO orders (produktId, userId, Amount) VALUES (?, ?, ?)",
+			_, insertErr := db.Query("INSERT INTO orders (produktId, userId, Amount) VALUES (?, ?, ?)",
 				order.ProduktId, order.UserId, order.Amount)
+			errorHandler(insertErr)
+			js, err := json.Marshal("true")
 			errorHandler(err)
-			_, responserErr := responseWriter.Write([]byte("{true}"))
-			errorHandler(responserErr)
-
+			_, responseErr := responseWriter.Write(js)
+			errorHandler(responseErr)
 			return
 		}
 	default:
-		_, responserErr := responseWriter.Write([]byte("THIS IS A POST REQUEST"))
-		errorHandler(responserErr)
+		js, err := json.Marshal("THIS IS A POST REQUEST")
+		errorHandler(err)
+		_, responseErr := responseWriter.Write(js)
+		errorHandler(responseErr)
 		return
 	}
 }
-func GetOrdersByUserID(responseWriter http.ResponseWriter, request *http.Request) {
+
+func GetOrdersByUserId(responseWriter http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case "GET":
 		db := openDB()
 		defer closeDB(db)
-		result, err := db.Query("SELECT produktId, userId, amount FROM orders WHERE userId = ?", request.URL.Query().Get("id"))
+		result, err := db.Query("SELECT * FROM orders WHERE userId = ?", request.URL.Query().Get("id"))
 		errorHandler(err)
 		var orders []model.Order
-		for result.Next() {
-			var order model.Order
-			err = result.Scan(&order.ProduktId, &order.UserId, &order.Amount)
-			errorHandler(err)
-			orders = append(orders, order)
+		if result != nil {
+			for result.Next() {
+				var order model.Order
+				err = result.Scan(&order.Id, &order.ProduktId, &order.UserId, &order.Amount)
+				errorHandler(err)
+				orders = append(orders, order)
+			}
 		}
-		jsonOrders, err := json.Marshal(orders)
-		errorHandler(err)
-		_, responserErr := responseWriter.Write(jsonOrders)
-		errorHandler(responserErr)
+		var orderResults []model.OrderResult
+		for _, order := range orders {
+			var orderResultItem model.OrderResult
+			var bookAndAmount model.BookAndAmount
+			bookAndAmount.Amount = order.Amount
+			result, err := db.Query("SELECT * FROM books WHERE Id = ?", order.ProduktId)
+			errorHandler(err)
+			if result != nil {
+				for result.Next() {
+					var book model.Book
+					err = result.Scan(&book.Id, &book.Titel, &book.EAN, &book.Content, &book.Price)
+					errorHandler(err)
+					bookAndAmount.Book = book
+					bookAndAmount.Amount = order.Amount
+				}
+			}
+			orderResultItem.BasketID = order.Id
+			orderResultItem.UserId = order.UserId
+			orderResultItem.Books = append(orderResultItem.Books, bookAndAmount)
+			orderResults = append(orderResults, orderResultItem)
+		}
+		orderResultJson, jsonErr := json.Marshal(orderResults)
+		errorHandler(jsonErr)
+		_, responseErr := responseWriter.Write(orderResultJson)
+		errorHandler(responseErr)
 		return
 	default:
-		_, responserErr := responseWriter.Write([]byte("THIS IS A GET REQUEST"))
-		errorHandler(responserErr)
+		js, err := json.Marshal("THIS IS A GET REQUEST")
+		errorHandler(err)
+		_, responseErr := responseWriter.Write(js)
+		errorHandler(responseErr)
 		return
 	}
 }

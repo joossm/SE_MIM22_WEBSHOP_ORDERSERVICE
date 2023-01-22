@@ -1,7 +1,7 @@
 package model
 
 type Order struct {
-	id        int
+	Id        string
 	ProduktId string
 	UserId    string
 	Amount    string
